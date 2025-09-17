@@ -1,74 +1,65 @@
 #!/usr/bin/env node
 const { program } = require('commander');
+const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-
-// Importation du modèle IA personnalisé
-try {
-  const CustomAIModel = require('./src/ai-model');
-} catch (error) {
-  console.log('Module IA non chargé:', error.message);
-}
+const MGLangEngine = require('./index');
 
 program
   .name('mg')
-  .description('MG-lang - Langage de programmation français-friendly')
+  .description('MG-lang - Langage de programmation français-friendly avec support IA')
   .version('2.2.2');
 
 program
-  .argument('[fichier]', 'Fichier MG à exécuter')
-  .option('-i, --install', 'Installer les dépendances automatiquement')
-  .option('-v, --verbose', 'Mode verbeux')
-  .option('-t, --timeout <ms>', 'Timeout en millisecondes', '30000')
-  .option('--init', 'Initialiser un nouveau projet MG')
-  .option('--plugin <nom>', 'Installer un plugin')
-  .option('--list-plugins', 'Lister les plugins installés')
-  .action(async (fichier, options) => {
-    if (options.init) {
-      console.log('Initialisation d\'un nouveau projet MG...');
-      // Logique d'initialisation
-      return;
-    }
-
+  .command('lancer [fichier]')
+  .description('Lancer un fichier MG ou entrer en mode interactif')
+  .action(async (fichier) => {
+    const engine = new MGLangEngine();
     if (fichier) {
       try {
         const content = fs.readFileSync(fichier, 'utf-8');
-        console.log(`Exécution du fichier: ${fichier}`);
-        // Logique d'exécution du fichier MG
+        console.log(`🚀 Exécution du fichier : ${fichier}`);
+        await engine.execute(content);
       } catch (error) {
-        console.error(`Erreur lors de la lecture du fichier: ${error.message}`);
+        console.error(`❌ Erreur lors de la lecture ou l'exécution du fichier : ${error.message}`);
       }
     } else {
-      console.log('Mode interactif MG-lang');
-      console.log('Tapez "exit" pour quitter');
-      // Logique du mode interactif (REPL)
+      console.log('Bienvenue en mode interactif MG-lang. Tapez "exit" pour quitter.');
+      // Logique pour le mode interactif (REPL) à implémenter
     }
   });
 
-// Commande pour utiliser l'IA
 program
-  .command('ai <input>')
-  .description('Utiliser le modèle IA personnalisé')
-  .action(async (input) => {
+  .command('ai <texte>')
+  .description("Analyser une chaîne de texte avec le modèle d'IA intégré")
+  .action(async (texte) => {
     try {
       const CustomAIModel = require('./src/ai-model');
       const ai = new CustomAIModel();
-      const result = await ai.process(input);
-      console.log('Résultat:', result);
+      const resultat = await ai.process(texte);
+      console.log('Résultat de l\'IA :', resultat);
     } catch (error) {
-      console.error('Erreur:', error.message);
-      console.log('Assurez-vous d\'avoir placé le modèle dans src/model.safetensors');
+      console.error('❌ Erreur IA :', error.message);
     }
   });
 
-// Commande pour initialiser un projet
 program
-  .command('init [nom]')
-  .description('Initialiser un nouveau projet MG')
-  .action((nom) => {
-    const projectName = nom || 'mon-projet-mg';
-    console.log(`Création du projet: ${projectName}`);
-    // Logique d'initialisation du projet
+  .command('install <paquet>')
+  .description('Installer un paquet npm et le sauvegarder dans package.json')
+  .action((paquet) => {
+    console.log(`📦 Installation de ${paquet}...`);
+    exec(`npm install ${paquet} --save`, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`❌ Erreur lors de l'installation : ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        console.error(`Erreur NPM : ${stderr}`);
+        return;
+      }
+      console.log(stdout);
+      console.log(`✅ ${paquet} a été installé avec succès !`);
+    });
   });
 
 program.parse(process.argv);
