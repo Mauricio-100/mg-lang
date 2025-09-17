@@ -1,14 +1,14 @@
 #!/usr/bin/env node
-const { program } = require('commander');
-const { exec } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const MGLangEngine = require('./index');
+import { program } from 'commander';
+import { exec } from 'child_process';
+import fs from 'fs';
+import MGLangEngine from './index.js';
+import CustomAIModel from './src/ai-model.js';
 
 program
   .name('mg')
   .description('MG-lang - Langage de programmation français-friendly avec support IA')
-  .version('2.2.2');
+  .version('2.3.0');
 
 program
   .command('lancer [fichier]')
@@ -21,11 +21,10 @@ program
         console.log(`🚀 Exécution du fichier : ${fichier}`);
         await engine.execute(content);
       } catch (error) {
-        console.error(`❌ Erreur lors de la lecture ou l'exécution du fichier : ${error.message}`);
+        console.error(`❌ Erreur lors de l'exécution du fichier : ${error.message}`);
       }
     } else {
-      console.log('Bienvenue en mode interactif MG-lang. Tapez "exit" pour quitter.');
-      // Logique pour le mode interactif (REPL) à implémenter
+      console.log('Mode interactif non implémenté.');
     }
   });
 
@@ -34,7 +33,6 @@ program
   .description("Analyser une chaîne de texte avec le modèle d'IA intégré")
   .action(async (texte) => {
     try {
-      const CustomAIModel = require('./src/ai-model');
       const ai = new CustomAIModel();
       const resultat = await ai.process(texte);
       console.log('Résultat de l\'IA :', resultat);
@@ -50,7 +48,7 @@ program
     console.log(`📦 Installation de ${paquet}...`);
     exec(`npm install ${paquet} --save`, (error, stdout, stderr) => {
       if (error) {
-        console.error(`❌ Erreur lors de l'installation : ${error.message}`);
+        console.error(`❌ Erreur d'installation : ${error.message}`);
         return;
       }
       if (stderr) {
