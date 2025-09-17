@@ -18,9 +18,11 @@ npm install -g mg-lang
 ### Utilisation
 ``
 Créer un fichier exemple.mg :
+```bash
 Forget resultat = attends clientMG.modele('fal-ai/sdxl').prompt('Crée un logo minimaliste').executer()
 afficher(resultat)
 afficher('Service en ligne sur localhost:3000')
+```
 Puis lancer :
 MG lancer exemple.mg
 Syntaxe MG
@@ -55,4 +57,5 @@ resultat = ia_analyser("texte à analyser")
 PR et issues bienvenues. Suivez la syntaxe MG et testez vos fichiers .mg.
 ### Licence
 ISC © Mauricio
+
 
