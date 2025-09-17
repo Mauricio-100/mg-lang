@@ -1,69 +1,55 @@
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios'); // Assurez-vous d'avoir fait 'npm install axios'
+// src/ai-model.js
+import { pipeline, env } from '@xenova/transformers';
+
+// Configuration pour utiliser les modèles locaux
+env.allowLocalModels = true;
+env.localModelPath = './src/'; // Indique où chercher les modèles
 
 class CustomAIModel {
-  constructor() {
-    this.modelPath = path.join(__dirname, 'model.safetensors');
-    this.modelLoaded = false;
-  }
+  // Le nom du modèle que vous voulez utiliser.
+  // Remplacez 'Xenova/all-MiniLM-L6-v2' par 'model.safetensors' si vous
+  // avez un modèle compatible de ce nom dans le dossier /src.
+  static modelName = 'Xenova/all-MiniLM-L6-v2';
+  static instance = null;
 
-  async downloadModel() {
-    // IMPORTANT : Vous devez remplacer cette URL par un lien direct vers votre fichier modèle.
-    // Vous pouvez héberger le fichier sur GitHub Releases, par exemple.
-    const modelUrl = 'https://VOTRE_URL_DE_MODELE/model.safetensors';
-    console.log("Modèle d'IA non trouvé. Tentative de téléchargement...");
-
-    try {
-      const writer = fs.createWriteStream(this.modelPath);
-      const response = await axios({
-        url: modelUrl,
-        method: 'GET',
-        responseType: 'stream'
+  // Crée une instance unique du pipeline (singleton)
+  static async getInstance() {
+    if (this.instance === null) {
+      console.log('🤖 Chargement du modèle IA...');
+      // Crée un pipeline "feature-extraction" qui convertit le texte en vecteurs
+      this.instance = await pipeline('feature-extraction', this.modelName, {
+        progress_callback: (progress) => {
+          console.log(`Chargement: ${progress.file} (${Math.round(progress.progress)}%)`);
+        }
       });
-
-      response.data.pipe(writer);
-
-      return new Promise((resolve, reject) => {
-        writer.on('finish', () => {
-          console.log('✅ Modèle téléchargé avec succès.');
-          resolve();
-        });
-        writer.on('error', reject);
-      });
-    } catch (error) {
-      // En cas d'échec, supprime le fichier potentiellement incomplet
-      if (fs.existsSync(this.modelPath)) {
-        fs.unlinkSync(this.modelPath);
-      }
-      console.error(`❌ Erreur critique lors du téléchargement du modèle : ${error.message}`);
-      throw new Error("Le téléchargement du modèle a échoué. Vérifiez votre connexion internet ou l'URL du modèle.");
+      console.log('✅ Modèle IA prêt.');
     }
+    return this.instance;
   }
 
-  async loadModel() {
-    if (!fs.existsSync(this.modelPath)) {
-      await this.downloadModel();
-    }
-    
-    // Ici, vous mettriez votre logique de chargement de modèle (ex: avec Transformers.js)
-    console.log('🤖 Modèle IA chargé depuis :', this.modelPath);
-    this.modelLoaded = true;
-  }
-
+  // Méthode pour utiliser le modèle
   async process(input) {
-    if (!this.modelLoaded) {
-      await this.loadModel();
+    try {
+      const extractor = await CustomAIModel.getInstance();
+      
+      console.log('🧠 Traitement du texte :', input);
+      
+      // Utilisation du modèle pour extraire les caractéristiques du texte
+      const result = await extractor(input, { pooling: 'mean', normalize: true });
+
+      // On retourne un résultat simplifié
+      return {
+        succes: true,
+        entree: input,
+        // Les "embeddings" sont des données complexes, on montre un aperçu
+        sortie: `Vecteur de caractéristiques (taille: ${result.data.length})`,
+        vecteur: Array.from(result.data).slice(0, 5) // Affiche les 5 premières valeurs
+      };
+    } catch (error) {
+      console.error("❌ Erreur lors du traitement par l'IA :", error.message);
+      throw new Error("Impossible d'exécuter le modèle d'IA.");
     }
-    
-    // Simule une analyse de l'input par l'IA
-    console.log('🧠 Traitement de l\'input :', input);
-    return {
-      succes: true,
-      entree: input,
-      sortie: `Le modèle a analysé : "${input}"`
-    };
   }
 }
 
-module.exports = CustomAIModel;
+export default CustomAIModel;
