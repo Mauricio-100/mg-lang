@@ -16,8 +16,8 @@ MG est un **langage IA unique en français**, permettant d’interagir avec plus
 npm install -g mg-lang
 ```
 ### Utilisation
-``
-Créer un fichier exemple.mg :
+
+# Créer un fichier exemple.mg :
 ```bash
 Forget resultat = attends clientMG.modele('fal-ai/sdxl').prompt('Crée un logo minimaliste').executer()
 afficher(resultat)
@@ -57,5 +57,6 @@ resultat = ia_analyser("texte à analyser")
 PR et issues bienvenues. Suivez la syntaxe MG et testez vos fichiers .mg.
 ### Licence
 ISC © Mauricio
+
 
 
