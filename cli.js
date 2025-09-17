@@ -1,21 +1,8 @@
-#!/usr/bin/env node
-const AIModel = require('./src/ai-integration');
-const fs = require('fs').promises;
-const path = require('path');
-const MGLangEngine = require('./index');
 const { program } = require('commander');
 const CustomAIModel = require('./src/ai-model');
 
+// Configuration de la commande AI
 program
-  .version('2.0.0')
-  .description('MG-lang - Langage de programmation français-friendly')
-  .argument('[fichier]', 'Fichier MG à exécuter')
-  .option('-i, --install', 'Installer les dépendances automatiquement')
-  .option('-v, --verbose', 'Mode verbeux')
-  .option('-t, --timeout <ms>', 'Timeout en millisecondes', '30000')
-  .option('--init', 'Initialiser un nouveau projet MG')
-  .option('--plugin <nom>', 'Installer un plugin')
-  .option('--list-plugins', 'Lister les plugins installés');
   .command('ai <input>')
   .description('Utiliser le modèle IA personnalisé')
   .action(async (input) => {
@@ -28,91 +15,6 @@ program
     }
   });
 
+// Autres commandes...
+
 program.parse(process.argv);
-
-const options = program.opts();
-const engine = new MGLangEngine();
-
-async function initProject() {
-  const projectStructure = {
-    'src': ['main.mg'],
-    'tests': ['test.mg'],
-    'plugins': [],
-    'mg.config.json': JSON.stringify({
-      plugins: [],
-      autoload: ['src/*.mg'],
-      compilation: { target: 'node14', minify: false }
-    }, null, 2)
-  };
-
-  for (const [dir, files] of Object.entries(projectStructure)) {
-    if (Array.isArray(files)) {
-      await fs.mkdir(dir, { recursive: true });
-      for (const file of files) {
-        await fs.writeFile(path.join(dir, file), '');
-      }
-    } else {
-      await fs.writeFile(dir, files);
-    }
-  }
-
-  console.log('Projet MG initialisé!');
-}
-
-async function runFile(filePath) {
-  try {
-    const code = await fs.readFile(filePath, 'utf-8');
-    
-    if (options.verbose) {
-      console.log('Exécution du fichier:', filePath);
-      console.log('Code MG:', code);
-    }
-
-    const result = await engine.execute(code);
-    
-    if (options.verbose) {
-      console.log('Résultat:', result);
-    }
-  } catch (error) {
-    console.error('Erreur lors de l\'exécution:', error.message);
-    process.exit(1);
-  }
-}
-
-async function main() {
-  if (options.init) {
-    await initProject();
-    return;
-  }
-
-  if (options.plugin) {
-    console.log(`Installation du plugin ${options.plugin}...`);
-    // Implémentation de l'installation de plugin
-    return;
-  }
-
-  if (options.listPlugins) {
-    console.log('Plugins disponibles:');
-    // Implémentation de la liste des plugins
-    return;
-  }
-
-  const file = program.args[0];
-  if (!file) {
-    program.help();
-    return;
-  }
-  program
-  .command('ai <input>')
-  .description('Utiliser le modèle IA pour traiter du texte')
-  .action(async (input) => {
-    const ai = new AIModel();
-    const result = await ai.process(input);
-    console.log('Résultat:', result);
-
-  await runFile(file);
-}
-
-main().catch(console.error);
-
-
