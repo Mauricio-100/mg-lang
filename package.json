@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node cli.js",
     "test": "node test.js",
-    "publish": "npm publish --access public"
+    "publish": "npm publish --access public" 
   },
   "keywords": [
     "mg-lang",
@@ -38,4 +38,14 @@
   "engines": {
     "node": ">=14.0.0"
   }
+{
+  "files": [
+    "src",
+    "cli.js",
+    "index.js",
+    "interpreteur-mg.js",
+    "package.json",
+    "README.md"
+  ]
+}
 }
