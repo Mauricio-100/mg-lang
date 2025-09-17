@@ -1,20 +1,24 @@
 {
   "name": "mg-lang",
   "version": "1.0.0",
-  "description": "",
+  "description": "MG - Langage IA en français avec syntaxe unique, multi-fournisseurs, basé sur Node/npm",
   "main": "index.js",
+  "type": "module",
+  "bin": {
+    "MG": "./cli.js"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node cli.js",
+    "test": "node test.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Mauricio-100/mg-lang.git"
-  },
-  "keywords": [],
-  "author": "",
+  "author": "Mauricio",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Mauricio-100/mg-lang/issues"
+  "dependencies": {
+    "@mauriciotukss2/mangrat-v2omini": "^2.0.0",
+    "@fal-ai/client": "^1.0.0",
+    "yargs": "^17.7.2"
   },
-  "homepage": "https://github.com/Mauricio-100/mg-lang#readme"
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
