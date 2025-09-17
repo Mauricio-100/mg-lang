@@ -13,3 +13,4 @@ export async function runMG(codeMG) {
   const func = new Function('clientMG', `return (async()=>{ ${codeJS} })()`);
   await func(clientMG);
 }
+
