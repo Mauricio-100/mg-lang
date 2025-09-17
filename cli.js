@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-
+const AIModel = require('./src/ai-integration');
 const fs = require('fs').promises;
 const path = require('path');
 const MGLangEngine = require('./index');
@@ -90,8 +90,16 @@ async function main() {
     program.help();
     return;
   }
+  program
+  .command('ai <input>')
+  .description('Utiliser le modèle IA pour traiter du texte')
+  .action(async (input) => {
+    const ai = new AIModel();
+    const result = await ai.process(input);
+    console.log('Résultat:', result);
 
   await runFile(file);
 }
 
 main().catch(console.error);
+
