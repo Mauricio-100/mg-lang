@@ -1,6 +1,6 @@
 {
   "name": "mg-lang",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Langage de programmation français-friendly avec support IA",
   "main": "index.js",
   "bin": {
@@ -9,17 +9,14 @@
   "scripts": {
     "start": "node cli.js",
     "test": "node test.js",
-    "publish": "npm publish --access public",
-    "ai-setup": "node scripts/setup-ai.js"
+    "publish": "npm publish --access public"
   },
   "keywords": [
     "mg-lang",
     "programmation",
     "français",
     "dsl",
-    "automation",
-    "ai",
-    "safetensors"
+    "automation"
   ],
   "author": "Mauricio-100",
   "license": "MIT",
@@ -32,9 +29,7 @@
     "url": "https://github.com/Mauricio-100/mg-lang/issues"
   },
   "dependencies": {
-    "commander": "^9.4.0",
-    "@xenova/transformers": "^2.15.0",
-    "onnxruntime-node": "^1.17.0"
+    "commander": "^9.4.0"
   },
   "devDependencies": {
     "mocha": "^10.0.0",
