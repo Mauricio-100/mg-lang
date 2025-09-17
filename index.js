@@ -7,34 +7,28 @@ const fs = require('fs').promises;
 class MGLangEngine {
   constructor() {
     this.context = vm.createContext({
-      Print: console.log,
+      afficher: console.log,
       Vrai: true,
       Faux: false,
-      Néant: null,
+      Neant: null,
       Liste: Array,
       Dictionnaire: Object,
-      await: this.awaitHandler.bind(this)
+      // Ajout de l'objet Fichier pour les opérations sur les fichiers
+      Fichier: {
+        lire: this.lireFichier,
+        ecrire: this.ecrireFichier,
+        copier: this.copier.bind(this)
+      }
     });
-    
-    this.types = {
-      'Texte': String,
-      'Nombre': Number,
-      'Booléen': Boolean,
-      'Liste': Array,
-      'Dictionnaire': Object
-    };
   }
 
-  async awaitHandler(promise) {
-    return await promise;
-  }
-
+  // Permet d'installer dynamiquement des modules npm si absents
   async requireDynamic(moduleName) {
     try {
       return require(moduleName);
     } catch (error) {
       if (error.code === 'MODULE_NOT_FOUND') {
-        console.log(`Installation de ${moduleName}...`);
+        console.log(`Module '${moduleName}' non trouvé. Installation...`);
         await execAsync(`npm install ${moduleName}`);
         return require(moduleName);
       }
@@ -42,60 +36,57 @@ class MGLangEngine {
     }
   }
 
-  parseTypeAnnotation(code) {
-    return code.replace(/:Texte/g, '')
-      .replace(/:Nombre/g, '')
-      .replace(/:Booléen/g, '')
-      .replace(/:Liste/g, '')
-      .replace(/:Dictionnaire/g, '');
-  }
-
   async execute(code) {
     try {
-      // Prétraitement du code MG
       let jsCode = code
-        .replace(/Forget\s+([^=]+)=/g, 'const $1 =')
-        .replace(/Call\s+'([^']+)'/g, 'await requireDynamic("$1")')
-        .replace(/Do\s+([^\n|]+)(?:\s*\|\s*([^\n]+))?/g, (match, fn, pipeline) => {
-          if (pipeline) {
-            return `await (${fn}).then(${pipeline})`;
-          }
-          return `await ${fn}`;
-        })
-        .replace(/Si\s+(.+?)\s+Alors/g, 'if ($1) {')
-        .replace(/SinonSi\s+(.+?)\s+Alors/g, '} else if ($1) {')
-        .replace(/Sinon/g, '} else {')
-        .replace(/FinSi/g, '}')
-        .replace(/Pour\s+chaque\s+(\w+)\s+dans\s+(\w+)\s+Faire/g, 'for (const $1 of $2) {')
-        .replace(/FinPour/g, '}')
-        .replace(/Tester\s+"([^"]+)"\s+Faire/g, 'test("$1", async () => {')
-        .replace(/FinTester/g, '})')
-        .replace(/Affirmer\s+que\s+(.+?)\s+Égal\s+(.+)/g, 'expect($1).toBe($2)');
+        // Variables et Constantes
+        .replace(/\bForget\s+([^=]+)=\s*(.+)/g, 'const $1 = $2')
+        .replace(/\bRemember\s+([^=]+)=\s*(.+)/g, 'let $1 = $2')
+        
+        // Imports dynamiques
+        .replace(/\bCall\s+'([^']+)'/g, 'await this.requireDynamic("$1")')
+        
+        // Conditions
+        .replace(/\bSi\s+(.+?)\s+Alors/g, 'if ($1) {')
+        .replace(/\bSinonSi\s+(.+?)\s+Alors/g, '} else if ($1) {')
+        .replace(/\bSinon/g, '} else {')
+        .replace(/\bFinSi/g, '}')
+        
+        // Boucles
+        .replace(/\bPour\s+chaque\s+(\w+)\s+dans\s+(\w+)\s+Faire/g, 'for (const $1 of $2) {')
+        .replace(/\bFinPour/g, '}')
+        .replace(/\bTantQue\s+(.+?)\s+Faire/g, 'while ($1) {')
+        .replace(/\bFinTantQue/g, '}')
 
-      // Gestion des annotations de type
-      jsCode = this.parseTypeAnnotation(jsCode);
+        // Mots-clés directs
+        .replace(/\battends\b/g, 'await')
+        .replace(/\bafficher\((.*)\)/g, 'console.log($1)');
 
-      // Exécution dans le contexte sandbox
-      const script = new vm.Script(jsCode);
+      // Encapsuler dans une fonction asynchrone pour gérer `await` au plus haut niveau
+      const script = new vm.Script(`(async () => { ${jsCode} })()`);
+      
+      // Lier 'this' de requireDynamic au contexte d'exécution
+      this.context.requireDynamic = this.requireDynamic.bind(this);
+
       return await script.runInContext(this.context);
     } catch (error) {
-      console.error('Erreur MG:', error.message);
+      console.error('Erreur MG :', error.message);
       throw error;
     }
   }
 
-  // Méthodes pour les opérations fichiers en français
+  // --- Opérations sur les fichiers ---
   async lireFichier(chemin) {
     return await fs.readFile(chemin, 'utf-8');
   }
 
-  async écrireFichier(chemin, contenu) {
+  async ecrireFichier(chemin, contenu) {
     return await fs.writeFile(chemin, contenu);
   }
 
   async copier(source, destination) {
     const content = await this.lireFichier(source);
-    return await this.écrireFichier(destination, content);
+    return await this.ecrireFichier(destination, content);
   }
 }
 
