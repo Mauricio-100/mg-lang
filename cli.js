@@ -4,6 +4,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const MGLangEngine = require('./index');
 const { program } = require('commander');
+const CustomAIModel = require('./src/ai-model');
 
 program
   .version('2.0.0')
@@ -15,6 +16,17 @@ program
   .option('--init', 'Initialiser un nouveau projet MG')
   .option('--plugin <nom>', 'Installer un plugin')
   .option('--list-plugins', 'Lister les plugins installés');
+  .command('ai <input>')
+  .description('Utiliser le modèle IA personnalisé')
+  .action(async (input) => {
+    try {
+      const ai = new CustomAIModel();
+      const result = await ai.process(input);
+      console.log('Résultat:', result);
+    } catch (error) {
+      console.error('Erreur:', error.message);
+    }
+  });
 
 program.parse(process.argv);
 
@@ -102,4 +114,5 @@ async function main() {
 }
 
 main().catch(console.error);
+
 
