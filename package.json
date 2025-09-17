@@ -1,6 +1,6 @@
 {
   "name": "mg-lang",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Langage de programmation français-friendly avec support IA",
   "main": "index.js",
   "bin": {
